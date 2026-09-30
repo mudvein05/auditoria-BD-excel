@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal de Auditoría de Libros Excel y Discrepancias - INAB / SECORF</title>
+  
+  <!-- SheetJS para lectura y exportación de Excel en el navegador sin backend -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    :root {
+      --primary-blue: #0b3b60;
+      --secondary-blue: #145374;
+      --forest-green: #0d7650;
+      --emerald: #059669;
+      --mint: #10b981;
+      --teal: #0ea5e9;
+      --bg: #f4f8f7;
+      --card-bg: #ffffff;
+      --text-main: #132a22;
+      --text-muted: #526b62;
+      --border-line: #d3e2dc;
+      --badge-green-bg: #d1fae5;
+      --badge-green-txt: #065f46;
+      --badge-amber-bg: #fef3c7;
+      --badge-amber-txt: #92400e;
+      --badge-red-bg: #fee2e2;
+      --badge-red-txt: #991b1b;
+      --badge-blue-bg: #e0f2fe;
+      --badge-blue-txt: #0369a1;
+      --shadow-sm: 0 2px 8px rgba(11, 59, 96, 0.05);
+      --shadow-md: 0 6px 20px rgba(11, 59, 96, 0.08);
+      --shadow-lg: 0 12px 32px rgba(11, 59, 96, 0.12);
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 28px;
+      background: linear-gradient(115deg, var(--primary-blue) 0%, var(--secondary-blue) 35%, var(--forest-green) 75%, var(--emerald) 100%);
+      color: #ffffff;
+      box-shadow: 0 3px 18px rgba(11, 59, 96, 0.22);
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .topbar-logo {
+      font-size: 1.6rem;
+      background: rgba(255, 255, 255, 0.15);
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    .topbar-title h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .topbar-title p {
+      font-size: 0.78rem;
+      opacity: 0.88;
+      font-weight: 400;
+    }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-topbar {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-topbar:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    /* SUBNAV BAR (Format like the reference website) */
+    .subnav {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-line);
+      padding: 10px 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+      box-shadow: var(--shadow-sm);
+    }
+    .subnav-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .subnav-tab {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border-line);
+      background: #f8fbfa;
+      color: var(--text-muted);
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.18s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .subnav-tab:hover {
+      border-color: var(--emerald);
+      color: var(--emerald);
+      background: #ffffff;
+    }
+    .subnav-tab.active {
+      background: var(--forest-green);
+      border-color: var(--forest-green);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(13, 118, 80, 0.25);
+    }
+
+    /* MAIN CONTAINER */
+    .container {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 24px 20px 48px;
+      flex: 1;
+      width: 100%;
+    }
+
+    /* HERO BANNER */
+    .hero-banner {
+      background: linear-gradient(135deg, #ffffff 0%, #f0f7f4 100%);
+      border: 1px solid var(--border-line);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-banner::after {
+      content: "";
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(13, 118, 80, 0.08) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .hero-text h2 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--primary-blue);
+      margin-bottom: 6px;
+    }
+    .hero-text p {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      max-width: 760px;
+      line-height: 1.45;
+    }
+
+    /* CARDS GRID */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-line);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 22px;
+      transition: box-shadow 0.2s ease;
+    }
+    .card:hover {
+      box-shadow: var(--shadow-md);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-line);
+    }
+    .card-header h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary-blue);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .step-badge {
+      background: var(--badge-blue-bg);
+      color: var(--badge-blue-txt);
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 12px;
+      text-transform: uppercase;
+    }
+
+    /* UPLOAD DROPZONE */
+    .dropzone {
+      border: 2px dashed #9bc5b6;
+      background: #f7faf9;
+      border-radius: var(--radius);
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--emerald);
+      background: #eef7f4;
+      transform: scale(1.005);
+    }
+    .dropzone input[type="file"] {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .dropzone-icon {
+      font-size: 2.6rem;
+      margin-bottom: 8px;
+      color: var(--forest-green);
+    }
+    .dropzone-text h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary-blue);
+      margin-bottom: 4px;
+    }
+    .dropzone-text p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    /* FILE INFO PILL */
+    .file-loaded-banner {
+      display: none;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: 10px;
+      padding: 12px 18px;
+      margin-top: 14px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .file-loaded-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .file-loaded-icon {
+      font-size: 1.4rem;
+      color: var(--emerald);
+    }
+
+    /* SELECTION CONTROLS */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+      margin-top: 10px;
+    }
+    .control-box label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--primary-blue);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .select-styled {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border-line);
+      background: #ffffff;
+      font-size: 0.9rem;
+      color: var(--text-main);
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+    .select-styled:focus {
+      border-color: var(--emerald);
+      box-shadow: 0 0 0 3px rgba(13, 118, 80, 0.15);
+    }
+
+    /* COLUMN CHECKBOX PILLS */
+    .column-picker-container {
+      margin-top: 14px;
+    }
+    .column-picker-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .quick-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-quick {
+      font-size: 0.76rem;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border-line);
+      background: #f8fbfa;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+    .btn-quick:hover {
+      background: #ffffff;
+      border-color: var(--emerald);
+      color: var(--emerald);
+    }
+
+    .column-pills-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-height: 180px;
+      overflow-y: auto;
+      padding: 10px;
+      background: #f8fbfa;
+      border: 1px solid var(--border-line);
+      border-radius: 8px;
+    }
+    .col-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: #ffffff;
+      border: 1px solid var(--border-line);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.18s ease;
+    }
+    .col-pill:hover {
+      border-color: var(--emerald);
+    }
+    .col-pill.selected {
+      background: var(--badge-green-bg);
+      border-color: var(--mint);
+      color: var(--badge-green-txt);
+    }
+    .col-pill input {
+      display: none;
+    }
+
+    /* AUDIT ACTION BUTTON */
+    .action-panel {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-line);
+    }
+    .btn-action-primary {
+      background: linear-gradient(135deg, var(--forest-green) 0%, var(--emerald) 100%);
+      color: #ffffff;
+      border: none;
+      padding: 12px 26px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(13, 118, 80, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .btn-action-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(13, 118, 80, 0.4);
+    }
+    .btn-action-primary:disabled {
+      background: #cbd5e1;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* KPI STATS CARDS */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+    .stat-card {
+      background: #ffffff;
+      border: 1px solid var(--border-line);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .stat-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--primary-blue);
+      line-height: 1.1;
+    }
+    .stat-desc {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .stat-card.alert .stat-value { color: var(--badge-red-txt); }
+    .stat-card.warning .stat-value { color: var(--badge-amber-txt); }
+    .stat-card.success .stat-value { color: var(--emerald); }
+
+    /* RESULTS TABLE */
+    .table-responsive {
+      overflow-x: auto;
+      border: 1px solid var(--border-line);
+      border-radius: 8px;
+      background: #ffffff;
+      max-height: 520px;
+    }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+      text-align: left;
+    }
+    table.data-table thead th {
+      background: #f1f6f4;
+      color: var(--primary-blue);
+      font-weight: 700;
+      padding: 10px 14px;
+      border-bottom: 2px solid var(--border-line);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      white-space: nowrap;
+    }
+    table.data-table tbody td {
+      padding: 9px 14px;
+      border-bottom: 1px solid #eef3f1;
+      color: var(--text-main);
+    }
+    table.data-table tbody tr:hover {
+      background-color: #f7faf8;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge-error { background: var(--badge-red-bg); color: var(--badge-red-txt); }
+    .badge-warn { background: var(--badge-amber-bg); color: var(--badge-amber-txt); }
+    .badge-ok { background: var(--badge-green-bg); color: var(--badge-green-txt); }
+    .badge-info { background: var(--badge-blue-bg); color: var(--badge-blue-txt); }
+
+    /* TABLE TOOLBAR */
+    .table-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .table-search input {
+      padding: 8px 14px;
+      border: 1px solid var(--border-line);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      width: 260px;
+      outline: none;
+    }
+    .table-search input:focus {
+      border-color: var(--emerald);
+    }
+    .export-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-export {
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border-line);
+      background: #ffffff;
+      color: var(--text-main);
+      transition: all 0.15s ease;
+    }
+    .btn-export:hover {
+      border-color: var(--emerald);
+      color: var(--emerald);
+    }
+    .btn-export.excel {
+      background: #0d7650;
+      color: #ffffff;
+      border-color: #0d7650;
+    }
+    .btn-export.excel:hover {
+      background: #0a5c3e;
+    }
+
+    /* FOOTER */
+    footer {
+      background: #ffffff;
+      border-top: 1px solid var(--border-line);
+      padding: 16px 28px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: auto;
+    }
+
+    /* EMPTY STATE */
+    .empty-state {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .empty-state-icon {
+      font-size: 2.8rem;
+      margin-bottom: 10px;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-logo">🌲</div>
+      <div class="topbar-title">
+        <h1>Portal de Auditoría de Libros Excel</h1>
+        <p>Control de Calidad, Detección de Discrepancias y Normalización de Licencias</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn-topbar" onclick="cargarEjemploDemo()">📁 Cargar Ejemplo Demo</button>
+      <a class="btn-topbar" href="https://github.com" target="_blank">↗ Repositorio GitHub</a>
+    </div>
+  </header>
+
+  <!-- SUBNAV BAR -->
+  <nav class="subnav">
+    <span class="subnav-label">Módulos:</span>
+    <button class="subnav-tab active" onclick="cambiarModo('comparacion_columnas')">⚖️ Comparar 2 Columnas (A vs B)</button>
+    <button class="subnav-tab" onclick="cambiarModo('duplicados_grupo')">🔁 Duplicados por Grupo (Resolución / Correlativo)</button>
+    <button class="subnav-tab" onclick="cambiarModo('valores_nulos')">⚠️ Detección de Nulos / Vacíos</button>
+    <button class="subnav-tab" onclick="cambiarModo('auditoria_general')">🔍 Auditoría Integral Multicolumna</button>
+  </nav>
+
+  <!-- MAIN CONTAINER -->
+  <main class="container">
+
+    <!-- HERO BANNER -->
+    <div class="hero-banner">
+      <div class="hero-text">
+        <h2>Auditoría Inteligente 100% en Navegador</h2>
+        <p>Sube cualquier libro de Excel institucional (.xlsx, .xls) sin enviar tus datos a ningún servidor externo. El procesamiento corre completamente en la memoria de tu navegador de manera ultrarrápida, segura y privada.</p>
+      </div>
+    </div>
+
+    <!-- PASO 1: CARGA DE ARCHIVO -->
+    <section class="card">
+      <div class="card-header">
+        <h3><span>📥 Paso 1:</span> Cargar Libro de Excel</h3>
+        <span class="step-badge">Sin límite de peso</span>
+      </div>
+
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept=".xlsx, .xls, .csv">
+        <div class="dropzone-icon">📊</div>
+        <div class="dropzone-text">
+          <h4>Arrastra tu libro de Excel aquí o haz clic para seleccionarlo</h4>
+          <p>Formatos compatibles: .xlsx (Excel moderno), .xls (Excel 97-2003), .csv</p>
+        </div>
+      </div>
+
+      <div class="file-loaded-banner" id="fileBanner">
+        <div class="file-loaded-info">
+          <div class="file-loaded-icon">✅</div>
+          <div>
+            <strong id="fileNameDisplay">archivo.xlsx</strong>
+            <div style="font-size: 0.78rem; color: var(--text-muted);" id="fileStatsDisplay">Cargando hojas...</div>
+          </div>
+        </div>
+        <button class="btn-quick" onclick="resetFile()">Cambiar archivo</button>
+      </div>
+    </section>
+
+    <!-- PASO 2: SELECCIÓN DE HOJA Y PARÁMETROS -->
+    <section class="card" id="step2Card" style="display: none;">
+      <div class="card-header">
+        <h3><span>⚙️ Paso 2:</span> Configuración de Auditoría y Selección de Columnas</h3>
+        <span class="step-badge" id="activeModeBadge">Comparar 2 Columnas</span>
+      </div>
+
+      <div class="controls-grid">
+        <!-- Selector de Hoja -->
+        <div class="control-box">
+          <label for="sheetSelect">Hoja a Procesar:</label>
+          <select id="sheetSelect" class="select-styled" onchange="alCambiarHoja()"></select>
+        </div>
+
+        <!-- Parámetro Dinámico 1 -->
+        <div class="control-box" id="paramBox1">
+          <label id="paramLabel1" for="selectColA">Columna Base (Ej: Licencia):</label>
+          <select id="selectColA" class="select-styled"></select>
+        </div>
+
+        <!-- Parámetro Dinámico 2 -->
+        <div class="control-box" id="paramBox2">
+          <label id="paramLabel2" for="selectColB">Columna a Comparar (Ej: Resolución):</label>
+          <select id="selectColB" class="select-styled"></select>
+        </div>
+      </div>
+
+      <!-- Selector de Columnas Adicionales / Multicolumna -->
+      <div class="column-picker-container" id="columnPickerSection">
+        <div class="column-picker-header">
+          <label style="font-size: 0.8rem; font-weight: 700; color: var(--primary-blue);">Columnas Adicionales a Preservar en el Reporte:</label>
+          <div class="quick-actions">
+            <button class="btn-quick" onclick="seleccionarTodasColumnas(true)">Marcar Todas</button>
+            <button class="btn-quick" onclick="seleccionarTodasColumnas(false)">Desmarcar</button>
+            <button class="btn-quick" onclick="seleccionSugerida()">Sugeridas (INAB)</button>
+          </div>
+        </div>
+        <div class="column-pills-wrap" id="columnPills"></div>
+      </div>
+
+      <!-- BOTÓN DE EJECUCIÓN -->
+      <div class="action-panel">
+        <span style="font-size: 0.82rem; color: var(--text-muted);" id="rowCounterNotice">0 registros en esta hoja</span>
+        <button class="btn-action-primary" id="btnRunAudit" onclick="ejecutarAuditoria()">
+          <span>⚡ Analizar Discrepancias Ahora</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- PASO 3: RESULTADOS Y REPORTES -->
+    <section class="card" id="resultsCard" style="display: none;">
+      <div class="card-header">
+        <h3><span>📊 Resultados:</span> Inconsistencias Detectadas</h3>
+        <span class="step-badge" id="resultsBadge">0 Casos</span>
+      </div>
+
+      <!-- KPIS STATS -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-title">Total Filas Analizadas</div>
+          <div class="stat-value" id="kpiTotalRows">0</div>
+          <div class="stat-desc">Registros en la hoja seleccionada</div>
+        </div>
+        <div class="stat-card alert">
+          <div class="stat-title">Discrepancias / Inconsistencias</div>
+          <div class="stat-value" id="kpiDiscrepancies">0</div>
+          <div class="stat-desc" id="kpiDiscrepanciesDesc">Casos que requieren revisión</div>
+        </div>
+        <div class="stat-card success">
+          <div class="stat-title">Registros Consistentes</div>
+          <div class="stat-value" id="kpiConsistent">0</div>
+          <div class="stat-desc">Coincidencia válida comprobada</div>
+        </div>
+        <div class="stat-card warning">
+          <div class="stat-title">% Tasa de Inconsistencia</div>
+          <div class="stat-value" id="kpiErrorRate">0.0%</div>
+          <div class="stat-desc">Proporción de error en la muestra</div>
+        </div>
+      </div>
+
+      <!-- TABLE TOOLBAR -->
+      <div class="table-toolbar">
+        <div class="table-search">
+          <input type="text" id="tableFilterInput" placeholder="🔍 Filtrar resultados en tiempo real..." oninput="filtrarTablaResultados()">
+        </div>
+        <div class="export-buttons">
+          <button class="btn-export excel" onclick="exportarResultadosExcel()">📥 Descargar Reporte Excel (.xlsx)</button>
+          <button class="btn-export" onclick="exportarResultadosCSV()">📄 Descargar CSV</button>
+          <button class="btn-export" onclick="copiarTabla()">📋 Copiar Tabla</button>
+        </div>
+      </div>
+
+      <!-- TABLA RESULTADOS -->
+      <div class="table-responsive">
+        <table class="data-table" id="resultsTable">
+          <thead id="resultsTableHead"></thead>
+          <tbody id="resultsTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>Portal de Auditoría y Verificación de Tablas Forestales | Diseñado para INAB - SECORF</p>
+    <p style="font-size: 0.72rem; margin-top: 4px; opacity: 0.75;">Tecnología 100% Client-Side WebAssembly / SheetJS | Funciona offline y en GitHub Pages</p>
+  </footer>
+
+  <!-- LÓGICA DE AUDITORÍA Y PROCESAMIENTO JAVASCRIPT -->
+  <script>
+    let globalWorkbook = null;
+    let globalHeaders = [];
+    let globalSheetData = [];
+    let globalSelectedColumns = new Set();
+    let globalAuditResults = [];
+    let currentMode = 'comparacion_columnas';
+
+    // Drag and Drop
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) {
+        procesarArchivo(e.dataTransfer.files[0]);
+      }
+    });
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length) {
+        procesarArchivo(e.target.files[0]);
+      }
+    });
+
+    function procesarArchivo(file) {
+      document.getElementById('fileNameDisplay').textContent = file.name;
+      document.getElementById('fileStatsDisplay').textContent = `Tamaño: ${(file.size / 1024 / 1024).toFixed(2)} MB - Leyendo hojas...`;
+      dropzone.style.display = 'none';
+      document.getElementById('fileBanner').style.display = 'flex';
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        globalWorkbook = XLSX.read(data, { type: 'array' });
+
+        const sheetSelect = document.getElementById('sheetSelect');
+        sheetSelect.innerHTML = '';
+        globalWorkbook.SheetNames.forEach(sheetName => {
+          const opt = document.createElement('option');
+          opt.value = sheetName;
+          opt.textContent = sheetName;
+          sheetSelect.appendChild(opt);
+        });
+
+        document.getElementById('fileStatsDisplay').textContent = `${globalWorkbook.SheetNames.length} hojas detectadas en el libro`;
+        document.getElementById('step2Card').style.display = 'block';
+        alCambiarHoja();
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function resetFile() {
+      globalWorkbook = null;
+      document.getElementById('fileInput').value = '';
+      dropzone.style.display = 'block';
+      document.getElementById('fileBanner').style.display = 'none';
+      document.getElementById('step2Card').style.display = 'none';
+      document.getElementById('resultsCard').style.display = 'none';
+    }
+
+    function alCambiarHoja() {
+      if (!globalWorkbook) return;
+      const sheetName = document.getElementById('sheetSelect').value;
+      const ws = globalWorkbook.Sheets[sheetName];
+      globalSheetData = XLSX.utils.sheet_to_json(ws, { defval: "" });
+
+      if (globalSheetData.length === 0) {
+        alert("La hoja seleccionada está vacía.");
+        return;
+      }
+
+      globalHeaders = Object.keys(globalSheetData[0]);
+      document.getElementById('rowCounterNotice').textContent = `${globalSheetData.length.toLocaleString()} registros detectados en esta hoja`;
+
+      // Llenar selectores
+      actualizarSelectoresColumnas();
+      renderizarPillsColumnas();
+      seleccionSugerida();
+    }
+
+    function cambiarModo(modo) {
+      currentMode = modo;
+      document.querySelectorAll('.subnav-tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const pBox1 = document.getElementById('paramBox1');
+      const pBox2 = document.getElementById('paramBox2');
+      const pLab1 = document.getElementById('paramLabel1');
+      const pLab2 = document.getElementById('paramLabel2');
+      const badge = document.getElementById('activeModeBadge');
+
+      if (modo === 'comparacion_columnas') {
+        pBox1.style.display = 'block';
+        pBox2.style.display = 'block';
+        pLab1.textContent = 'Columna Base (Ej: Licencia):';
+        pLab2.textContent = 'Columna a Comparar (Ej: Resolución):';
+        badge.textContent = 'Comparar 2 Columnas';
+      } else if (modo === 'duplicados_grupo') {
+        pBox1.style.display = 'block';
+        pBox2.style.display = 'block';
+        pLab1.textContent = 'Columna Agrupadora (Ej: Resolución):';
+        pLab2.textContent = 'Columna a Verificar Duplicidad (Ej: Correlativo):';
+        badge.textContent = 'Duplicados por Grupo';
+      } else if (modo === 'valores_nulos') {
+        pBox1.style.display = 'none';
+        pBox2.style.display = 'none';
+        badge.textContent = 'Detección de Nulos / Vacíos';
+      } else if (modo === 'auditoria_general') {
+        pBox1.style.display = 'none';
+        pBox2.style.display = 'none';
+        badge.textContent = 'Auditoría Integral';
+      }
+    }
+
+    function actualizarSelectoresColumnas() {
+      const selA = document.getElementById('selectColA');
+      const selB = document.getElementById('selectColB');
+      selA.innerHTML = '';
+      selB.innerHTML = '';
+
+      globalHeaders.forEach(h => {
+        const oA = document.createElement('option');
+        oA.value = h;
+        oA.textContent = h;
+        selA.appendChild(oA);
+
+        const oB = document.createElement('option');
+        oB.value = h;
+        oB.textContent = h;
+        selB.appendChild(oB);
+      });
+
+      // Valores por defecto inteligentes
+      const findLic = globalHeaders.find(h => h.toLowerCase().includes('licencia'));
+      const findRes = globalHeaders.find(h => h.toLowerCase().includes('resolucion') || h.toLowerCase().includes('resolución'));
+      if (findLic) selA.value = findLic;
+      if (findRes) selB.value = findRes;
+    }
+
+    function renderizarPillsColumnas() {
+      const container = document.getElementById('columnPills');
+      container.innerHTML = '';
+      globalSelectedColumns.clear();
+
+      globalHeaders.forEach(col => {
+        const pill = document.createElement('div');
+        pill.className = 'col-pill';
+        pill.innerHTML = `<span>${col}</span>`;
+        pill.onclick = () => {
+          if (globalSelectedColumns.has(col)) {
+            globalSelectedColumns.delete(col);
+            pill.classList.remove('selected');
+          } else {
+            globalSelectedColumns.add(col);
+            pill.classList.add('selected');
+          }
+        };
+        container.appendChild(pill);
+      });
+    }
+
+    function seleccionarTodasColumnas(marcar) {
+      const pills = document.querySelectorAll('.col-pill');
+      globalSelectedColumns.clear();
+      pills.forEach((p, idx) => {
+        const col = globalHeaders[idx];
+        if (marcar) {
+          globalSelectedColumns.add(col);
+          p.classList.add('selected');
+        } else {
+          p.classList.remove('selected');
+        }
+      });
+    }
+
+    function seleccionSugerida() {
+      const clave = ['poligonoid', 'resolucion', 'licencia', 'correlativo', 'propietario', 'municipio', 'area'];
+      const pills = document.querySelectorAll('.col-pill');
+      globalSelectedColumns.clear();
+      pills.forEach((p, idx) => {
+        const col = globalHeaders[idx];
+        if (clave.some(k => col.toLowerCase().includes(k))) {
+          globalSelectedColumns.add(col);
+          p.classList.add('selected');
+        } else {
+          p.classList.remove('selected');
+        }
+      });
+    }
+
+    // MOTOR DE AUDITORÍA
+    function ejecutarAuditoria() {
+      if (!globalSheetData || globalSheetData.length === 0) return;
+      globalAuditResults = [];
+
+      const colA = document.getElementById('selectColA').value;
+      const colB = document.getElementById('selectColB').value;
+      const selectedColsArr = Array.from(globalSelectedColumns);
+
+      if (currentMode === 'comparacion_columnas') {
+        globalSheetData.forEach((row, idx) => {
+          const valA = String(row[colA] || '').trim();
+          const valB = String(row[colB] || '').trim();
+
+          let estado = 'OK';
+          let tipo = 'Coincidencia Válida';
+          let detalle = 'Ambas columnas coinciden exactamente.';
+
+          if (valA === '' && valB === '') {
+            estado = 'WARN';
+            tipo = 'Ambas Vacías';
+            detalle = 'Ambos campos se encuentran sin información.';
+          } else if (valA === '' || valA.toUpperCase() === 'NULL') {
+            estado = 'ERROR';
+            tipo = `${colA} Vacía`;
+            detalle = `Existe valor en ${colB} ('${valB}') pero ${colA} está vacía.`;
+          } else if (valB === '' || valB.toUpperCase() === 'NULL') {
+            estado = 'ERROR';
+            tipo = `${colB} Vacía`;
+            detalle = `Existe valor en ${colA} ('${valA}') pero ${colB} está vacía.`;
+          } else if (valA === valB) {
+            estado = 'OK';
+          } else if (valB.startsWith(valA)) {
+            estado = 'OK';
+            tipo = 'Coincidencia con Sufijo';
+            detalle = `La resolución incorpora la licencia con sufijo '${valB.slice(valA.length)}'.`;
+          } else {
+            estado = 'ERROR';
+            tipo = 'Discrepancia de Código';
+            detalle = `Valor en ${colA}: '${valA}' ≠ Valor en ${colB}: '${valB}'`;
+          }
+
+          if (estado !== 'OK') {
+            const item = {
+              'Fila': idx + 2,
+              [colA]: valA,
+              [colB]: valB,
+              'Tipo de Inconsistencia': tipo,
+              'Detalle': detalle,
+              '_estado': estado
+            };
+            selectedColsArr.forEach(c => {
+              if (c !== colA && c !== colB) item[c] = row[c];
+            });
+            globalAuditResults.push(item);
+          }
+        });
+      } else if (currentMode === 'duplicados_grupo') {
+        const grupoMap = new Map();
+        globalSheetData.forEach((row, idx) => {
+          const gVal = String(row[colA] || '').trim();
+          const cVal = String(row[colB] || '').trim();
+          if (!grupoMap.has(gVal)) grupoMap.set(gVal, []);
+          grupoMap.get(gVal).push({ row, cVal, fila: idx + 2 });
+        });
+
+        grupoMap.forEach((lista, gVal) => {
+          const corrCounts = {};
+          lista.forEach(item => {
+            corrCounts[item.cVal] = (corrCounts[item.cVal] || 0) + 1;
+          });
+          lista.forEach(item => {
+            if (corrCounts[item.cVal] > 1) {
+              const resObj = {
+                'Fila': item.fila,
+                [colA]: gVal,
+                [colB]: item.cVal,
+                'Tipo de Inconsistencia': 'Correlativo Duplicado',
+                'Detalle': `El ${colB} '${item.cVal}' aparece ${corrCounts[item.cVal]} veces en este ${colA}.`,
+                '_estado': 'ERROR'
+              };
+              selectedColsArr.forEach(c => {
+                if (c !== colA && c !== colB) resObj[c] = item.row[c];
+              });
+              globalAuditResults.push(resObj);
+            }
+          });
+        });
+      } else if (currentMode === 'valores_nulos') {
+        globalSheetData.forEach((row, idx) => {
+          const nulos = [];
+          selectedColsArr.forEach(c => {
+            const v = String(row[c] || '').trim();
+            if (v === '' || v.toUpperCase() === 'NULL' || v.toUpperCase() === 'SIN INFORMACION') {
+              nulos.push(c);
+            }
+          });
+          if (nulos.length > 0) {
+            const resObj = {
+              'Fila': idx + 2,
+              'Tipo de Inconsistencia': 'Campos Vacíos / Nulos',
+              'Detalle': `Columnas sin dato: ${nulos.join(', ')}`,
+              '_estado': 'WARN'
+            };
+            selectedColsArr.forEach(c => resObj[c] = row[c]);
+            globalAuditResults.push(resObj);
+          }
+        });
+      }
+
+      renderizarResultados();
+    }
+
+    function renderizarResultados() {
+      const resultsCard = document.getElementById('resultsCard');
+      resultsCard.style.display = 'block';
+
+      const totalRows = globalSheetData.length;
+      const errorCount = globalAuditResults.length;
+      const consistentCount = totalRows - errorCount;
+      const errorRate = totalRows > 0 ? ((errorCount / totalRows) * 100).toFixed(1) : 0;
+
+      document.getElementById('kpiTotalRows').textContent = totalRows.toLocaleString();
+      document.getElementById('kpiDiscrepancies').textContent = errorCount.toLocaleString();
+      document.getElementById('kpiConsistent').textContent = Math.max(0, consistentCount).toLocaleString();
+      document.getElementById('kpiErrorRate').textContent = `${errorRate}%`;
+      document.getElementById('resultsBadge').textContent = `${errorCount} Casos Detectados`;
+
+      poblarTabla(globalAuditResults);
+      resultsCard.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function poblarTabla(datos) {
+      const thead = document.getElementById('resultsTableHead');
+      const tbody = document.getElementById('resultsTableBody');
+      thead.innerHTML = '';
+      tbody.innerHTML = '';
+
+      if (datos.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-state-icon">🎉</div><h4>¡No se encontraron discrepancias!</h4><p>Todos los registros evaluados cumplen con las reglas seleccionadas.</p></td></tr>`;
+        return;
+      }
+
+      // Cabeceras
+      const columnas = Object.keys(datos[0]).filter(k => k !== '_estado');
+      const trHead = document.createElement('tr');
+      columnas.forEach(col => {
+        const th = document.createElement('th');
+        th.textContent = col;
+        trHead.appendChild(th);
+      });
+      thead.appendChild(trHead);
+
+      // Primeros 300 registros para fluidez
+      const limite = Math.min(datos.length, 300);
+      for (let i = 0; i < limite; i++) {
+        const row = datos[i];
+        const tr = document.createElement('tr');
+        columnas.forEach(col => {
+          const td = document.createElement('td');
+          const val = row[col];
+          if (col === 'Tipo de Inconsistencia') {
+            const badgeClass = row._estado === 'ERROR' ? 'badge-error' : (row._estado === 'WARN' ? 'badge-warn' : 'badge-ok');
+            td.innerHTML = `<span class="badge ${badgeClass}">${val}</span>`;
+          } else {
+            td.textContent = val !== undefined && val !== null ? val : '';
+          }
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      }
+
+      if (datos.length > 300) {
+        const trAviso = document.createElement('tr');
+        trAviso.innerHTML = `<td colspan="${columnas.length}" style="text-align:center; padding:12px; font-weight:700; background:#f0fdf4; color:#065f46;">Mostrando los primeros 300 casos en pantalla. Descarga el reporte en Excel para ver los ${datos.length.toLocaleString()} registros completos.</td>`;
+        tbody.appendChild(trAviso);
+      }
+    }
+
+    function filtrarTablaResultados() {
+      const query = document.getElementById('tableFilterInput').value.toLowerCase();
+      if (!query) {
+        poblarTabla(globalAuditResults);
+        return;
+      }
+      const filtrados = globalAuditResults.filter(r => {
+        return Object.values(r).some(val => String(val).toLowerCase().includes(query));
+      });
+      poblarTabla(filtrados);
+    }
+
+    function exportarResultadosExcel() {
+      if (globalAuditResults.length === 0) {
+        alert("No hay discrepancias para exportar.");
+        return;
+      }
+      const copia = globalAuditResults.map(r => {
+        const item = { ...r };
+        delete item._estado;
+        return item;
+      });
+      const ws = XLSX.utils.json_to_sheet(copia);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Auditoría");
+      XLSX.writeFile(wb, `Reporte_Auditoria_Discrepancias_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+
+    function exportarResultadosCSV() {
+      if (globalAuditResults.length === 0) return;
+      const copia = globalAuditResults.map(r => {
+        const item = { ...r };
+        delete item._estado;
+        return item;
+      });
+      const ws = XLSX.utils.json_to_sheet(copia);
+      const csv = XLSX.utils.sheet_to_csv(ws);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Reporte_Auditoria_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+
+    function copiarTabla() {
+      if (globalAuditResults.length === 0) return;
+      const cols = Object.keys(globalAuditResults[0]).filter(k => k !== '_estado');
+      let tsv = cols.join('\t') + '\n';
+      globalAuditResults.forEach(r => {
+        tsv += cols.map(c => r[c] || '').join('\t') + '\n';
+      });
+      navigator.clipboard.writeText(tsv).then(() => alert("Tabla copiada al portapapeles en formato compatible con Excel."));
+    }
+
+    function cargarEjemploDemo() {
+      // Datos demo para probar inmediatamente
+      const dummyData = [
+        {"PoligonoId": 101, "Licencia": "10-112-063-1.1-2016", "Resolucion": "10-112-063-1.1-2016-1", "Correlativo": 1, "Propietario": "RODRIGO COJON", "Municipio": "SAN RAYMUNDO"},
+        {"PoligonoId": 102, "Licencia": "10-124-253-1.1-2014", "Resolucion": "10-124-235-1.1-2014-1", "Correlativo": 1, "Propietario": "JUAN PEREZ", "Municipio": "SAN JOSE PINULA"},
+        {"PoligonoId": 103, "Licencia": "10-132-073-1.1-2008-01", "Resolucion": "10-132-073-1.1-2008-5", "Correlativo": 1, "Propietario": "LEONEL GARCIA", "Municipio": "CHINAUTLA"},
+        {"PoligonoId": 104, "Licencia": "10-132-073-1.1-2008-01", "Resolucion": "10-132-073-1.1-2008-5", "Correlativo": 1, "Propietario": "LEONEL GARCIA", "Municipio": "CHINAUTLA"},
+        {"PoligonoId": 105, "Licencia": "", "Resolucion": "ORDEN JUDICIAL 15002", "Correlativo": 1, "Propietario": "MINEDUC", "Municipio": "GUATEMALA"}
+      ];
+
+      const ws = XLSX.utils.json_to_sheet(dummyData);
+      globalWorkbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(globalWorkbook, ws, "Region1_Demo");
+
+      document.getElementById('fileNameDisplay').textContent = "Demo_Poligonos_INAB.xlsx";
+      document.getElementById('fileStatsDisplay').textContent = "1 hoja demo cargada";
+      dropzone.style.display = 'none';
+      document.getElementById('fileBanner').style.display = 'flex';
+
+      const sheetSelect = document.getElementById('sheetSelect');
+      sheetSelect.innerHTML = '<option value="Region1_Demo">Region1_Demo</option>';
+
+      document.getElementById('step2Card').style.display = 'block';
+      alCambiarHoja();
+    }
+  </script>
+</body>
+</html>

@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Portal de Auditoría de Libros Excel y Discrepancias - INAB / SECORF</title>
+  <title>Portal de Auditoría Integral y Calidad de Datos - INAB / SECORF</title>
   
-  <!-- SheetJS para lectura y exportación de Excel en el navegador sin backend -->
+  <!-- SheetJS para lectura y exportación de Excel en el navegador -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Chart.js para generación de gráficos interactivos y descargables -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <style>
     :root {
@@ -29,6 +31,8 @@
       --badge-red-txt: #991b1b;
       --badge-blue-bg: #e0f2fe;
       --badge-blue-txt: #0369a1;
+      --badge-purple-bg: #f3e8ff;
+      --badge-purple-txt: #6b21a8;
       --shadow-sm: 0 2px 8px rgba(11, 59, 96, 0.05);
       --shadow-md: 0 6px 20px rgba(11, 59, 96, 0.08);
       --shadow-lg: 0 12px 32px rgba(11, 59, 96, 0.12);
@@ -60,37 +64,18 @@
       color: #ffffff;
       box-shadow: 0 3px 18px rgba(11, 59, 96, 0.22);
     }
-    .topbar-brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .topbar-brand { display: flex; align-items: center; gap: 12px; }
     .topbar-logo {
       font-size: 1.6rem;
       background: rgba(255, 255, 255, 0.15);
-      width: 44px;
-      height: 44px;
+      width: 44px; height: 44px;
       border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       border: 1px solid rgba(255, 255, 255, 0.25);
     }
-    .topbar-title h1 {
-      font-size: 1.15rem;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-    }
-    .topbar-title p {
-      font-size: 0.78rem;
-      opacity: 0.88;
-      font-weight: 400;
-    }
-    .topbar-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .topbar-title h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; }
+    .topbar-title p { font-size: 0.78rem; opacity: 0.88; font-weight: 400; }
+    .topbar-actions { display: flex; align-items: center; gap: 10px; }
     .btn-topbar {
       background: rgba(255, 255, 255, 0.12);
       border: 1px solid rgba(255, 255, 255, 0.3);
@@ -100,9 +85,7 @@
       font-size: 0.82rem;
       font-weight: 600;
       text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      display: inline-flex; align-items: center; gap: 6px;
       cursor: pointer;
       transition: all 0.2s ease;
     }
@@ -112,14 +95,14 @@
       transform: translateY(-1px);
     }
 
-    /* SUBNAV BAR (Format like the reference website) */
+    /* SUBNAV BAR */
     .subnav {
       background: #ffffff;
       border-bottom: 1px solid var(--border-line);
       padding: 10px 28px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       overflow-x: auto;
       scrollbar-width: thin;
       box-shadow: var(--shadow-sm);
@@ -133,12 +116,12 @@
       white-space: nowrap;
     }
     .subnav-tab {
-      padding: 8px 16px;
+      padding: 8px 15px;
       border-radius: 20px;
       border: 1px solid var(--border-line);
       background: #f8fbfa;
       color: var(--text-muted);
-      font-size: 0.84rem;
+      font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
       white-space: nowrap;
@@ -161,7 +144,7 @@
 
     /* MAIN CONTAINER */
     .container {
-      max-width: 1380px;
+      max-width: 1400px;
       margin: 0 auto;
       padding: 24px 20px 48px;
       flex: 1;
@@ -173,40 +156,27 @@
       background: linear-gradient(135deg, #ffffff 0%, #f0f7f4 100%);
       border: 1px solid var(--border-line);
       border-radius: var(--radius);
-      padding: 24px 28px;
-      margin-bottom: 24px;
+      padding: 22px 26px;
+      margin-bottom: 22px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       box-shadow: var(--shadow-sm);
-      position: relative;
-      overflow: hidden;
-    }
-    .hero-banner::after {
-      content: "";
-      position: absolute;
-      top: -40px;
-      right: -40px;
-      width: 220px;
-      height: 220px;
-      background: radial-gradient(circle, rgba(13, 118, 80, 0.08) 0%, transparent 70%);
-      border-radius: 50%;
-      pointer-events: none;
     }
     .hero-text h2 {
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       font-weight: 800;
       color: var(--primary-blue);
       margin-bottom: 6px;
     }
     .hero-text p {
       color: var(--text-muted);
-      font-size: 0.92rem;
-      max-width: 760px;
+      font-size: 0.9rem;
+      max-width: 850px;
       line-height: 1.45;
     }
 
-    /* CARDS GRID */
+    /* CARDS */
     .card {
       background: var(--card-bg);
       border: 1px solid var(--border-line);
@@ -216,9 +186,7 @@
       margin-bottom: 22px;
       transition: box-shadow 0.2s ease;
     }
-    .card:hover {
-      box-shadow: var(--shadow-md);
-    }
+    .card:hover { box-shadow: var(--shadow-md); }
     .card-header {
       display: flex;
       justify-content: space-between;
@@ -259,7 +227,7 @@
     .dropzone:hover, .dropzone.dragover {
       border-color: var(--emerald);
       background: #eef7f4;
-      transform: scale(1.005);
+      transform: scale(1.004);
     }
     .dropzone input[type="file"] {
       position: absolute;
@@ -272,18 +240,9 @@
       margin-bottom: 8px;
       color: var(--forest-green);
     }
-    .dropzone-text h4 {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--primary-blue);
-      margin-bottom: 4px;
-    }
-    .dropzone-text p {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-    }
+    .dropzone-text h4 { font-size: 1.05rem; font-weight: 700; color: var(--primary-blue); margin-bottom: 4px; }
+    .dropzone-text p { font-size: 0.82rem; color: var(--text-muted); }
 
-    /* FILE INFO PILL */
     .file-loaded-banner {
       display: none;
       background: #ecfdf5;
@@ -294,64 +253,51 @@
       align-items: center;
       justify-content: space-between;
     }
-    .file-loaded-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .file-loaded-icon {
-      font-size: 1.4rem;
-      color: var(--emerald);
-    }
+    .file-loaded-info { display: flex; align-items: center; gap: 12px; }
+    .file-loaded-icon { font-size: 1.4rem; color: var(--emerald); }
 
-    /* SELECTION CONTROLS */
+    /* CONTROLS */
     .controls-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
       margin-top: 10px;
     }
     .control-box label {
       display: block;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 700;
       color: var(--primary-blue);
       margin-bottom: 6px;
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
-    .select-styled {
+    .select-styled, .input-styled {
       width: 100%;
-      padding: 10px 14px;
+      padding: 9px 12px;
       border-radius: 8px;
       border: 1px solid var(--border-line);
       background: #ffffff;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       color: var(--text-main);
       font-weight: 600;
-      cursor: pointer;
       outline: none;
       transition: border-color 0.2s ease;
     }
-    .select-styled:focus {
+    .select-styled:focus, .input-styled:focus {
       border-color: var(--emerald);
       box-shadow: 0 0 0 3px rgba(13, 118, 80, 0.15);
     }
 
-    /* COLUMN CHECKBOX PILLS */
-    .column-picker-container {
-      margin-top: 14px;
-    }
+    /* PILLS */
+    .column-picker-container { margin-top: 16px; }
     .column-picker-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 8px;
     }
-    .quick-actions {
-      display: flex;
-      gap: 8px;
-    }
+    .quick-actions { display: flex; gap: 8px; }
     .btn-quick {
       font-size: 0.76rem;
       padding: 4px 10px;
@@ -368,7 +314,6 @@
       border-color: var(--emerald);
       color: var(--emerald);
     }
-
     .column-pills-wrap {
       display: flex;
       flex-wrap: wrap;
@@ -384,34 +329,29 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 12px;
+      padding: 5px 12px;
       border-radius: 20px;
       background: #ffffff;
       border: 1px solid var(--border-line);
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 600;
       cursor: pointer;
       user-select: none;
       transition: all 0.18s ease;
     }
-    .col-pill:hover {
-      border-color: var(--emerald);
-    }
+    .col-pill:hover { border-color: var(--emerald); }
     .col-pill.selected {
       background: var(--badge-green-bg);
       border-color: var(--mint);
       color: var(--badge-green-txt);
     }
-    .col-pill input {
-      display: none;
-    }
 
-    /* AUDIT ACTION BUTTON */
+    /* ACTION BUTTON */
     .action-panel {
       display: flex;
       justify-content: flex-end;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       margin-top: 18px;
       padding-top: 14px;
       border-top: 1px solid var(--border-line);
@@ -420,12 +360,12 @@
       background: linear-gradient(135deg, var(--forest-green) 0%, var(--emerald) 100%);
       color: #ffffff;
       border: none;
-      padding: 12px 26px;
+      padding: 11px 24px;
       border-radius: 8px;
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(13, 118, 80, 0.3);
+      box-shadow: 0 4px 14px rgba(13, 118, 80, 0.28);
       display: inline-flex;
       align-items: center;
       gap: 8px;
@@ -433,16 +373,10 @@
     }
     .btn-action-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(13, 118, 80, 0.4);
-    }
-    .btn-action-primary:disabled {
-      background: #cbd5e1;
-      cursor: not-allowed;
-      box-shadow: none;
-      transform: none;
+      box-shadow: 0 6px 20px rgba(13, 118, 80, 0.38);
     }
 
-    /* KPI STATS CARDS */
+    /* STATS GRID */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -460,7 +394,7 @@
       justify-content: space-between;
     }
     .stat-title {
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -473,16 +407,13 @@
       color: var(--primary-blue);
       line-height: 1.1;
     }
-    .stat-desc {
-      font-size: 0.74rem;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
+    .stat-desc { font-size: 0.74rem; color: var(--text-muted); margin-top: 4px; }
     .stat-card.alert .stat-value { color: var(--badge-red-txt); }
     .stat-card.warning .stat-value { color: var(--badge-amber-txt); }
     .stat-card.success .stat-value { color: var(--emerald); }
+    .stat-card.purple .stat-value { color: var(--badge-purple-txt); }
 
-    /* RESULTS TABLE */
+    /* TABLE */
     .table-responsive {
       overflow-x: auto;
       border: 1px solid var(--border-line);
@@ -512,15 +443,13 @@
       border-bottom: 1px solid #eef3f1;
       color: var(--text-main);
     }
-    table.data-table tbody tr:hover {
-      background-color: #f7faf8;
-    }
+    table.data-table tbody tr:hover { background-color: #f7faf8; }
     .badge {
       display: inline-flex;
       align-items: center;
       padding: 3px 8px;
       border-radius: 12px;
-      font-size: 0.74rem;
+      font-size: 0.72rem;
       font-weight: 700;
       white-space: nowrap;
     }
@@ -528,8 +457,9 @@
     .badge-warn { background: var(--badge-amber-bg); color: var(--badge-amber-txt); }
     .badge-ok { background: var(--badge-green-bg); color: var(--badge-green-txt); }
     .badge-info { background: var(--badge-blue-bg); color: var(--badge-blue-txt); }
+    .badge-purple { background: var(--badge-purple-bg); color: var(--badge-purple-txt); }
 
-    /* TABLE TOOLBAR */
+    /* TOOLBAR */
     .table-toolbar {
       display: flex;
       flex-wrap: wrap;
@@ -543,18 +473,13 @@
       border: 1px solid var(--border-line);
       border-radius: 6px;
       font-size: 0.85rem;
-      width: 260px;
+      width: 280px;
       outline: none;
     }
-    .table-search input:focus {
-      border-color: var(--emerald);
-    }
-    .export-buttons {
-      display: flex;
-      gap: 8px;
-    }
+    .table-search input:focus { border-color: var(--emerald); }
+    .export-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
     .btn-export {
-      padding: 7px 14px;
+      padding: 7px 13px;
       border-radius: 6px;
       font-size: 0.82rem;
       font-weight: 600;
@@ -567,20 +492,54 @@
       color: var(--text-main);
       transition: all 0.15s ease;
     }
-    .btn-export:hover {
-      border-color: var(--emerald);
-      color: var(--emerald);
+    .btn-export:hover { border-color: var(--emerald); color: var(--emerald); }
+    .btn-export.excel { background: #0d7650; color: #ffffff; border-color: #0d7650; }
+    .btn-export.excel:hover { background: #0a5c3e; }
+    .btn-export.chart-btn { background: #0b3b60; color: #ffffff; border-color: #0b3b60; }
+    .btn-export.chart-btn:hover { background: #082842; }
+
+    /* CHART SECTION */
+    .chart-container-box {
+      background: #ffffff;
+      border: 1px solid var(--border-line);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 22px;
+      box-shadow: var(--shadow-sm);
     }
-    .btn-export.excel {
-      background: #0d7650;
-      color: #ffffff;
-      border-color: #0d7650;
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
-    .btn-export.excel:hover {
-      background: #0a5c3e;
+    .chart-canvas-wrapper {
+      position: relative;
+      height: 380px;
+      width: 100%;
     }
 
-    /* FOOTER */
+    /* PROGRESS BAR IN TABLE */
+    .bar-cell-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .bar-bg {
+      flex: 1;
+      height: 8px;
+      background: #e2ece8;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--forest-green), var(--mint));
+      border-radius: 4px;
+    }
+
     footer {
       background: #ffffff;
       border-top: 1px solid var(--border-line);
@@ -589,18 +548,6 @@
       font-size: 0.8rem;
       color: var(--text-muted);
       margin-top: auto;
-    }
-
-    /* EMPTY STATE */
-    .empty-state {
-      padding: 40px 20px;
-      text-align: center;
-      color: var(--text-muted);
-    }
-    .empty-state-icon {
-      font-size: 2.8rem;
-      margin-bottom: 10px;
-      opacity: 0.6;
     }
   </style>
 </head>
@@ -612,7 +559,7 @@
       <div class="topbar-logo">🌲</div>
       <div class="topbar-title">
         <h1>Portal de Auditoría de Libros Excel</h1>
-        <p>Control de Calidad, Detección de Discrepancias y Normalización de Licencias</p>
+        <p>Control de Calidad, Tipología, Ortografía, Completitud y Resumen Estadístico</p>
       </div>
     </div>
     <div class="topbar-actions">
@@ -621,13 +568,14 @@
     </div>
   </header>
 
-  <!-- SUBNAV BAR -->
+  <!-- SUBNAV BAR (Módulos) -->
   <nav class="subnav">
     <span class="subnav-label">Módulos:</span>
     <button class="subnav-tab active" onclick="cambiarModo('comparacion_columnas')">⚖️ Comparar 2 Columnas (A vs B)</button>
     <button class="subnav-tab" onclick="cambiarModo('duplicados_grupo')">🔁 Duplicados por Grupo (Resolución / Correlativo)</button>
-    <button class="subnav-tab" onclick="cambiarModo('valores_nulos')">⚠️ Detección de Nulos / Vacíos</button>
-    <button class="subnav-tab" onclick="cambiarModo('auditoria_general')">🔍 Auditoría Integral Multicolumna</button>
+    <button class="subnav-tab" onclick="cambiarModo('auditoria_tipologica')">🔤 Tipología (0 Tildes, Mayúsculas y Caracteres)</button>
+    <button class="subnav-tab" onclick="cambiarModo('completitud_datos')">📉 Completitud de Información (% Vacíos)</button>
+    <button class="subnav-tab" onclick="cambiarModo('resumen_graficos')">📊 Matriz de Resumen y Gráficos</button>
   </nav>
 
   <!-- MAIN CONTAINER -->
@@ -636,8 +584,8 @@
     <!-- HERO BANNER -->
     <div class="hero-banner">
       <div class="hero-text">
-        <h2>Auditoría Inteligente 100% en Navegador</h2>
-        <p>Sube cualquier libro de Excel institucional (.xlsx, .xls) sin enviar tus datos a ningún servidor externo. El procesamiento corre completamente en la memoria de tu navegador de manera ultrarrápida, segura y privada.</p>
+        <h2 id="heroModuleTitle">Auditoría Inteligente 100% en Navegador</h2>
+        <p id="heroModuleDesc">Sube cualquier libro de Excel institucional (.xlsx, .xls) sin enviar tus datos a servidores externos. Todo el cálculo de calidad, ortografía, completitud y gráficos ocurre en la memoria local de tu navegador.</p>
       </div>
     </div>
 
@@ -645,7 +593,7 @@
     <section class="card">
       <div class="card-header">
         <h3><span>📥 Paso 1:</span> Cargar Libro de Excel</h3>
-        <span class="step-badge">Sin límite de peso</span>
+        <span class="step-badge">Sin límite de registros</span>
       </div>
 
       <div class="dropzone" id="dropzone">
@@ -669,11 +617,11 @@
       </div>
     </section>
 
-    <!-- PASO 2: SELECCIÓN DE HOJA Y PARÁMETROS -->
+    <!-- PASO 2: CONFIGURACIÓN DINÁMICA -->
     <section class="card" id="step2Card" style="display: none;">
       <div class="card-header">
-        <h3><span>⚙️ Paso 2:</span> Configuración de Auditoría y Selección de Columnas</h3>
-        <span class="step-badge" id="activeModeBadge">Comparar 2 Columnas</span>
+        <h3><span>⚙️ Paso 2:</span> Parámetros de Auditoría</h3>
+        <span class="step-badge" id="activeModeBadge">Configuración Activa</span>
       </div>
 
       <div class="controls-grid">
@@ -694,12 +642,28 @@
           <label id="paramLabel2" for="selectColB">Columna a Comparar (Ej: Resolución):</label>
           <select id="selectColB" class="select-styled"></select>
         </div>
+
+        <!-- Parámetro Específico: Umbral de Completitud -->
+        <div class="control-box" id="paramBoxThreshold" style="display: none;">
+          <label for="selectThreshold">Umbral para "Sin Información":</label>
+          <select id="selectThreshold" class="select-styled">
+            <option value="0.90">90% o más de columnas vacías</option>
+            <option value="0.80" selected>80% o más de columnas vacías (Estándar)</option>
+            <option value="0.70">70% o más de columnas vacías</option>
+          </select>
+        </div>
+
+        <!-- Parámetro Específico: Columna para Gráfico / Resumen -->
+        <div class="control-box" id="paramBoxChartCol" style="display: none;">
+          <label for="selectChartCol">Columna para Matriz y Gráfico:</label>
+          <select id="selectChartCol" class="select-styled" onchange="if(currentMode==='resumen_graficos') ejecutarAuditoria();"></select>
+        </div>
       </div>
 
-      <!-- Selector de Columnas Adicionales / Multicolumna -->
+      <!-- Selector de Columnas Adicionales -->
       <div class="column-picker-container" id="columnPickerSection">
         <div class="column-picker-header">
-          <label style="font-size: 0.8rem; font-weight: 700; color: var(--primary-blue);">Columnas Adicionales a Preservar en el Reporte:</label>
+          <label style="font-size: 0.8rem; font-weight: 700; color: var(--primary-blue);" id="colPickerLabel">Columnas a Analizar o Preservar en el Reporte:</label>
           <div class="quick-actions">
             <button class="btn-quick" onclick="seleccionarTodasColumnas(true)">Marcar Todas</button>
             <button class="btn-quick" onclick="seleccionarTodasColumnas(false)">Desmarcar</button>
@@ -713,46 +677,62 @@
       <div class="action-panel">
         <span style="font-size: 0.82rem; color: var(--text-muted);" id="rowCounterNotice">0 registros en esta hoja</span>
         <button class="btn-action-primary" id="btnRunAudit" onclick="ejecutarAuditoria()">
-          <span>⚡ Analizar Discrepancias Ahora</span>
+          <span>⚡ Analizar y Generar Resultados</span>
         </button>
       </div>
     </section>
 
-    <!-- PASO 3: RESULTADOS Y REPORTES -->
+    <!-- PASO 3: RESULTADOS -->
     <section class="card" id="resultsCard" style="display: none;">
       <div class="card-header">
-        <h3><span>📊 Resultados:</span> Inconsistencias Detectadas</h3>
-        <span class="step-badge" id="resultsBadge">0 Casos</span>
+        <h3><span>📊 Resultados:</span> <span id="resultsTitleText">Diagnóstico Generado</span></h3>
+        <span class="step-badge" id="resultsBadge">0 Registros</span>
       </div>
 
-      <!-- KPIS STATS -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-title">Total Filas Analizadas</div>
-          <div class="stat-value" id="kpiTotalRows">0</div>
-          <div class="stat-desc">Registros en la hoja seleccionada</div>
+      <!-- KPIS -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card" id="kpiCard1">
+          <div class="stat-title" id="kpiTitle1">Total Filas</div>
+          <div class="stat-value" id="kpiValue1">0</div>
+          <div class="stat-desc" id="kpiDesc1">Registros evaluados</div>
         </div>
-        <div class="stat-card alert">
-          <div class="stat-title">Discrepancias / Inconsistencias</div>
-          <div class="stat-value" id="kpiDiscrepancies">0</div>
-          <div class="stat-desc" id="kpiDiscrepanciesDesc">Casos que requieren revisión</div>
+        <div class="stat-card alert" id="kpiCard2">
+          <div class="stat-title" id="kpiTitle2">Casos Críticos</div>
+          <div class="stat-value" id="kpiValue2">0</div>
+          <div class="stat-desc" id="kpiDesc2">Requieren corrección</div>
         </div>
-        <div class="stat-card success">
-          <div class="stat-title">Registros Consistentes</div>
-          <div class="stat-value" id="kpiConsistent">0</div>
-          <div class="stat-desc">Coincidencia válida comprobada</div>
+        <div class="stat-card warning" id="kpiCard3">
+          <div class="stat-title" id="kpiTitle3">Casos Parciales</div>
+          <div class="stat-value" id="kpiValue3">0</div>
+          <div class="stat-desc" id="kpiDesc3">Incompletos o con advertencia</div>
         </div>
-        <div class="stat-card warning">
-          <div class="stat-title">% Tasa de Inconsistencia</div>
-          <div class="stat-value" id="kpiErrorRate">0.0%</div>
-          <div class="stat-desc">Proporción de error en la muestra</div>
+        <div class="stat-card success" id="kpiCard4">
+          <div class="stat-title" id="kpiTitle4">100% Completos / Correctos</div>
+          <div class="stat-value" id="kpiValue4">0</div>
+          <div class="stat-desc" id="kpiDesc4">Sin incidencias</div>
         </div>
       </div>
 
-      <!-- TABLE TOOLBAR -->
+      <!-- BLOQUE DE GRÁFICO (Solo en modo resumen_graficos) -->
+      <div class="chart-container-box" id="chartBox" style="display: none;">
+        <div class="chart-header">
+          <div>
+            <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--primary-blue);" id="chartTitle">Distribución por Categorías</h4>
+            <p style="font-size: 0.78rem; color: var(--text-muted);">Visualización gráfica interactiva y descargable</p>
+          </div>
+          <div class="export-buttons">
+            <button class="btn-export chart-btn" onclick="descargarGraficoPNG()">📸 Descargar Gráfico (PNG)</button>
+          </div>
+        </div>
+        <div class="chart-canvas-wrapper">
+          <canvas id="auditBarChart"></canvas>
+        </div>
+      </div>
+
+      <!-- TOOLBAR DE TABLA -->
       <div class="table-toolbar">
         <div class="table-search">
-          <input type="text" id="tableFilterInput" placeholder="🔍 Filtrar resultados en tiempo real..." oninput="filtrarTablaResultados()">
+          <input type="text" id="tableFilterInput" placeholder="🔍 Filtrar resultados..." oninput="filtrarTablaResultados()">
         </div>
         <div class="export-buttons">
           <button class="btn-export excel" onclick="exportarResultadosExcel()">📥 Descargar Reporte Excel (.xlsx)</button>
@@ -774,11 +754,11 @@
 
   <!-- FOOTER -->
   <footer>
-    <p>Portal de Auditoría y Verificación de Tablas Forestales | Diseñado para INAB - SECORF</p>
-    <p style="font-size: 0.72rem; margin-top: 4px; opacity: 0.75;">Tecnología 100% Client-Side WebAssembly / SheetJS | Funciona offline y en GitHub Pages</p>
+    <p>Portal de Auditoría Integral y Calidad de Datos Geoespaciales | Diseñado para INAB - SECORF</p>
+    <p style="font-size: 0.72rem; margin-top: 4px; opacity: 0.75;">Tecnología 100% Client-Side WebAssembly / SheetJS / Chart.js | Total Privacidad y Rendimiento Local</p>
   </footer>
 
-  <!-- LÓGICA DE AUDITORÍA Y PROCESAMIENTO JAVASCRIPT -->
+  <!-- LÓGICA JAVASCRIPT -->
   <script>
     let globalWorkbook = null;
     let globalHeaders = [];
@@ -786,6 +766,29 @@
     let globalSelectedColumns = new Set();
     let globalAuditResults = [];
     let currentMode = 'comparacion_columnas';
+    let chartInstance = null;
+
+    // Palabras reservadas para personas jurídicas / empresas
+    const PALABRAS_EMPRESA = [
+      'S.A.', 'S. A.', 'SOCIEDAD ANONIMA', 'SOCIEDAD ANÓNIMA', 'R.L.', 'R. L.',
+      'RESPONSABILIDAD LIMITADA', 'LIMITADA', 'LTDA', 'COOPERATIVA', 'ASOCIACION',
+      'ASOCIACIÓN', 'AGROPECUARIA', 'INVERSIONES', 'INMOBILIARIA', 'MUNICIPALIDAD',
+      'MINISTERIO', 'MINEDUC', 'BANCO', 'COMUNIDAD', 'IGLESIA', 'PARROQUIA',
+      'CONCEJO', 'CONSEJO', 'ALCALDIA', 'ALCALDÍA', 'FUNDACION', 'FUNDACIÓN',
+      'EMPRESA', 'CORPORACION', 'CORPORACIÓN', 'INDUSTRIA', 'PLANTACIONES',
+      'FORESTAL', 'COMERCIAL', 'FINCA', 'HACIENDA', 'REFORESTADORA'
+    ];
+
+    // Función para normalizar y remover todas las tildes (Regla institucional: 0 Tildes)
+    function quitarTildes(texto) {
+      if (!texto) return '';
+      return texto
+        .replace(/[áÁ]/g, m => m === 'á' ? 'a' : 'A')
+        .replace(/[éÉ]/g, m => m === 'é' ? 'e' : 'E')
+        .replace(/[íÍ]/g, m => m === 'í' ? 'i' : 'I')
+        .replace(/[óÓ]/g, m => m === 'ó' ? 'o' : 'O')
+        .replace(/[úÚüÜ]/g, m => (m === 'ú' || m === 'ü') ? 'u' : 'U');
+    }
 
     // Drag and Drop
     const dropzone = document.getElementById('dropzone');
@@ -796,14 +799,10 @@
     dropzone.addEventListener('drop', (e) => {
       e.preventDefault();
       dropzone.classList.remove('dragover');
-      if (e.dataTransfer.files.length) {
-        procesarArchivo(e.dataTransfer.files[0]);
-      }
+      if (e.dataTransfer.files.length) procesarArchivo(e.dataTransfer.files[0]);
     });
     fileInput.addEventListener('change', (e) => {
-      if (e.target.files.length) {
-        procesarArchivo(e.target.files[0]);
-      }
+      if (e.target.files.length) procesarArchivo(e.target.files[0]);
     });
 
     function procesarArchivo(file) {
@@ -856,7 +855,6 @@
       globalHeaders = Object.keys(globalSheetData[0]);
       document.getElementById('rowCounterNotice').textContent = `${globalSheetData.length.toLocaleString()} registros detectados en esta hoja`;
 
-      // Llenar selectores
       actualizarSelectoresColumnas();
       renderizarPillsColumnas();
       seleccionSugerida();
@@ -869,56 +867,88 @@
 
       const pBox1 = document.getElementById('paramBox1');
       const pBox2 = document.getElementById('paramBox2');
-      const pLab1 = document.getElementById('paramLabel1');
-      const pLab2 = document.getElementById('paramLabel2');
+      const pBoxThreshold = document.getElementById('paramBoxThreshold');
+      const pBoxChartCol = document.getElementById('paramBoxChartCol');
+      const colPickerSection = document.getElementById('columnPickerSection');
+      const chartBox = document.getElementById('chartBox');
       const badge = document.getElementById('activeModeBadge');
+
+      chartBox.style.display = 'none';
 
       if (modo === 'comparacion_columnas') {
         pBox1.style.display = 'block';
         pBox2.style.display = 'block';
-        pLab1.textContent = 'Columna Base (Ej: Licencia):';
-        pLab2.textContent = 'Columna a Comparar (Ej: Resolución):';
+        pBoxThreshold.style.display = 'none';
+        pBoxChartCol.style.display = 'none';
+        colPickerSection.style.display = 'block';
+        document.getElementById('paramLabel1').textContent = 'Columna Base (Ej: Licencia):';
+        document.getElementById('paramLabel2').textContent = 'Columna a Comparar (Ej: Resolución):';
         badge.textContent = 'Comparar 2 Columnas';
+        document.getElementById('heroModuleTitle').textContent = 'Auditoría Cruzada entre Columnas';
+        document.getElementById('heroModuleDesc').textContent = 'Compara dos columnas como Licencia vs. Resolución, detectando si faltan modalidades, errores en números o valores vacíos.';
       } else if (modo === 'duplicados_grupo') {
         pBox1.style.display = 'block';
         pBox2.style.display = 'block';
-        pLab1.textContent = 'Columna Agrupadora (Ej: Resolución):';
-        pLab2.textContent = 'Columna a Verificar Duplicidad (Ej: Correlativo):';
+        pBoxThreshold.style.display = 'none';
+        pBoxChartCol.style.display = 'none';
+        colPickerSection.style.display = 'block';
+        document.getElementById('paramLabel1').textContent = 'Columna Agrupadora (Ej: Resolución):';
+        document.getElementById('paramLabel2').textContent = 'Columna a Verificar Duplicidad (Ej: Correlativo):';
         badge.textContent = 'Duplicados por Grupo';
-      } else if (modo === 'valores_nulos') {
+        document.getElementById('heroModuleTitle').textContent = 'Detección de Duplicados Condicionales';
+        document.getElementById('heroModuleDesc').textContent = 'Identifica si se asignó el mismo número de Correlativo a rodales distintos que comparten la misma Resolución.';
+      } else if (modo === 'auditoria_tipologica') {
         pBox1.style.display = 'none';
         pBox2.style.display = 'none';
-        badge.textContent = 'Detección de Nulos / Vacíos';
-      } else if (modo === 'auditoria_general') {
+        pBoxThreshold.style.display = 'none';
+        pBoxChartCol.style.display = 'none';
+        colPickerSection.style.display = 'block';
+        badge.textContent = 'Tipología y Ortografía';
+        document.getElementById('heroModuleTitle').textContent = 'Auditoría Tipológica (Regla: 0 Tildes y Nombres Propios)';
+        document.getElementById('heroModuleDesc').textContent = 'Detecta presencia de tildes o acentos (debe haber 0 tildes por compatibilidad con software en inglés y SIG), nombres de personas en mayúsculas sostenidas, caracteres corruptos () y dobles espacios.';
+      } else if (modo === 'completitud_datos') {
         pBox1.style.display = 'none';
         pBox2.style.display = 'none';
-        badge.textContent = 'Auditoría Integral';
+        pBoxThreshold.style.display = 'block';
+        pBoxChartCol.style.display = 'none';
+        colPickerSection.style.display = 'block';
+        badge.textContent = 'Completitud de Información';
+        document.getElementById('heroModuleTitle').textContent = 'Control de Completitud de Datos (% Vacíos)';
+        document.getElementById('heroModuleDesc').textContent = 'Contabiliza cuántas filas no tienen el 80-90% de información ("Sin Información"), cuántas tienen información parcial y cuántas están 100% completas.';
+      } else if (modo === 'resumen_graficos') {
+        pBox1.style.display = 'none';
+        pBox2.style.display = 'none';
+        pBoxThreshold.style.display = 'none';
+        pBoxChartCol.style.display = 'block';
+        colPickerSection.style.display = 'none';
+        badge.textContent = 'Matriz de Resumen y Gráficos';
+        document.getElementById('heroModuleTitle').textContent = 'Matriz de Resumen y Gráfico de Barras';
+        document.getElementById('heroModuleDesc').textContent = 'Selecciona cualquier columna (ej. Tipo_Licencia, Municipio, Fase_Actual) para generar su matriz de frecuencias porcentual y un gráfico descargable en PNG.';
       }
     }
 
     function actualizarSelectoresColumnas() {
       const selA = document.getElementById('selectColA');
       const selB = document.getElementById('selectColB');
+      const selChart = document.getElementById('selectChartCol');
       selA.innerHTML = '';
       selB.innerHTML = '';
+      selChart.innerHTML = '';
 
       globalHeaders.forEach(h => {
-        const oA = document.createElement('option');
-        oA.value = h;
-        oA.textContent = h;
-        selA.appendChild(oA);
-
-        const oB = document.createElement('option');
-        oB.value = h;
-        oB.textContent = h;
-        selB.appendChild(oB);
+        selA.appendChild(new Option(h, h));
+        selB.appendChild(new Option(h, h));
+        selChart.appendChild(new Option(h, h));
       });
 
-      // Valores por defecto inteligentes
       const findLic = globalHeaders.find(h => h.toLowerCase().includes('licencia'));
       const findRes = globalHeaders.find(h => h.toLowerCase().includes('resolucion') || h.toLowerCase().includes('resolución'));
+      const findCorr = globalHeaders.find(h => h.toLowerCase().includes('correlativo'));
+      const findTipo = globalHeaders.find(h => h.toLowerCase().includes('tipo_licencia') || h.toLowerCase().includes('tipo'));
+
       if (findLic) selA.value = findLic;
       if (findRes) selB.value = findRes;
+      if (findTipo) selChart.value = findTipo;
     }
 
     function renderizarPillsColumnas() {
@@ -958,7 +988,7 @@
     }
 
     function seleccionSugerida() {
-      const clave = ['poligonoid', 'resolucion', 'licencia', 'correlativo', 'propietario', 'municipio', 'area'];
+      const clave = ['poligonoid', 'resolucion', 'licencia', 'correlativo', 'propietario', 'municipio', 'area', 'tipo_licencia', 'estado_obligacion'];
       const pills = document.querySelectorAll('.col-pill');
       globalSelectedColumns.clear();
       pills.forEach((p, idx) => {
@@ -972,6 +1002,17 @@
       });
     }
 
+    function esEmpresa(texto) {
+      if (!texto) return false;
+      const upper = texto.toUpperCase();
+      return PALABRAS_EMPRESA.some(p => upper.includes(p));
+    }
+
+    function tieneCaracteresCorruptos(texto) {
+      if (!texto) return false;
+      return texto.includes('') || /Ã[¡©­³º±‘ÁÉÓÚ¼]|Â|â€™/.test(texto);
+    }
+
     // MOTOR DE AUDITORÍA
     function ejecutarAuditoria() {
       if (!globalSheetData || globalSheetData.length === 0) return;
@@ -980,56 +1021,39 @@
       const colA = document.getElementById('selectColA').value;
       const colB = document.getElementById('selectColB').value;
       const selectedColsArr = Array.from(globalSelectedColumns);
+      const chartBox = document.getElementById('chartBox');
 
       if (currentMode === 'comparacion_columnas') {
+        chartBox.style.display = 'none';
         globalSheetData.forEach((row, idx) => {
           const valA = String(row[colA] || '').trim();
           const valB = String(row[colB] || '').trim();
-
-          let estado = 'OK';
-          let tipo = 'Coincidencia Válida';
-          let detalle = 'Ambas columnas coinciden exactamente.';
+          let estado = 'OK', tipo = 'Coincidencia Válida', detalle = 'Coincidencia válida.';
 
           if (valA === '' && valB === '') {
-            estado = 'WARN';
-            tipo = 'Ambas Vacías';
-            detalle = 'Ambos campos se encuentran sin información.';
+            estado = 'WARN'; tipo = 'Ambas Vacías'; detalle = 'Campos sin información.';
           } else if (valA === '' || valA.toUpperCase() === 'NULL') {
-            estado = 'ERROR';
-            tipo = `${colA} Vacía`;
-            detalle = `Existe valor en ${colB} ('${valB}') pero ${colA} está vacía.`;
+            estado = 'ERROR'; tipo = `${colA} Vacía`; detalle = `Valor presente en ${colB} ('${valB}') pero ${colA} está vacía.`;
           } else if (valB === '' || valB.toUpperCase() === 'NULL') {
-            estado = 'ERROR';
-            tipo = `${colB} Vacía`;
-            detalle = `Existe valor en ${colA} ('${valA}') pero ${colB} está vacía.`;
+            estado = 'ERROR'; tipo = `${colB} Vacía`; detalle = `Valor presente en ${colA} ('${valA}') pero ${colB} está vacía.`;
           } else if (valA === valB) {
             estado = 'OK';
           } else if (valB.startsWith(valA)) {
-            estado = 'OK';
-            tipo = 'Coincidencia con Sufijo';
-            detalle = `La resolución incorpora la licencia con sufijo '${valB.slice(valA.length)}'.`;
+            estado = 'OK'; tipo = 'Coincidencia con Sufijo'; detalle = `Resolución incorpora la licencia con sufijo '${valB.slice(valA.length)}'.`;
           } else {
-            estado = 'ERROR';
-            tipo = 'Discrepancia de Código';
-            detalle = `Valor en ${colA}: '${valA}' ≠ Valor en ${colB}: '${valB}'`;
+            estado = 'ERROR'; tipo = 'Discrepancia de Código'; detalle = `${colA}: '${valA}' ≠ ${colB}: '${valB}'`;
           }
 
           if (estado !== 'OK') {
-            const item = {
-              'Fila': idx + 2,
-              [colA]: valA,
-              [colB]: valB,
-              'Tipo de Inconsistencia': tipo,
-              'Detalle': detalle,
-              '_estado': estado
-            };
-            selectedColsArr.forEach(c => {
-              if (c !== colA && c !== colB) item[c] = row[c];
-            });
+            const item = { 'Fila': idx + 2, [colA]: valA, [colB]: valB, 'Tipo de Inconsistencia': tipo, 'Detalle': detalle, '_estado': estado };
+            selectedColsArr.forEach(c => { if (c !== colA && c !== colB) item[c] = row[c]; });
             globalAuditResults.push(item);
           }
         });
+        renderizarResultadosKpis('comparacion_columnas');
+
       } else if (currentMode === 'duplicados_grupo') {
+        chartBox.style.display = 'none';
         const grupoMap = new Map();
         globalSheetData.forEach((row, idx) => {
           const gVal = String(row[colA] || '').trim();
@@ -1040,9 +1064,7 @@
 
         grupoMap.forEach((lista, gVal) => {
           const corrCounts = {};
-          lista.forEach(item => {
-            corrCounts[item.cVal] = (corrCounts[item.cVal] || 0) + 1;
-          });
+          lista.forEach(item => corrCounts[item.cVal] = (corrCounts[item.cVal] || 0) + 1);
           lista.forEach(item => {
             if (corrCounts[item.cVal] > 1) {
               const resObj = {
@@ -1053,52 +1075,294 @@
                 'Detalle': `El ${colB} '${item.cVal}' aparece ${corrCounts[item.cVal]} veces en este ${colA}.`,
                 '_estado': 'ERROR'
               };
-              selectedColsArr.forEach(c => {
-                if (c !== colA && c !== colB) resObj[c] = item.row[c];
-              });
+              selectedColsArr.forEach(c => { if (c !== colA && c !== colB) resObj[c] = item.row[c]; });
               globalAuditResults.push(resObj);
             }
           });
         });
-      } else if (currentMode === 'valores_nulos') {
+        renderizarResultadosKpis('duplicados_grupo');
+
+      } else if (currentMode === 'auditoria_tipologica') {
+        chartBox.style.display = 'none';
         globalSheetData.forEach((row, idx) => {
-          const nulos = [];
-          selectedColsArr.forEach(c => {
-            const v = String(row[c] || '').trim();
-            if (v === '' || v.toUpperCase() === 'NULL' || v.toUpperCase() === 'SIN INFORMACION') {
-              nulos.push(c);
+          const hallazgosFila = [];
+
+          selectedColsArr.forEach(col => {
+            const val = String(row[col] || '').trim();
+            if (!val) return;
+
+            // 1. Caracteres corruptos
+            if (tieneCaracteresCorruptos(val)) {
+              hallazgosFila.push({
+                tipo: 'Carácter Corrupto (Encoding)',
+                col, val,
+                detalle: `Contiene símbolos corruptos '' o falla de codificación UTF-8.`
+              });
+            }
+
+            // 2. Mayúsculas completas en personas (No empresas)
+            const esColPersona = col.toLowerCase().includes('propietario') || col.toLowerCase().includes('titular') || col.toLowerCase().includes('nombre');
+            if (esColPersona && val.length > 3 && !esEmpresa(val)) {
+              const palabras = val.split(/\s+/).filter(w => w.length > 1);
+              const todoMayus = val === val.toUpperCase() && /[A-ZÁÉÍÓÚÑ]/.test(val);
+              if (todoMayus && palabras.length >= 2) {
+                hallazgosFila.push({
+                  tipo: 'Mayúsculas Completas en Persona',
+                  col, val,
+                  detalle: `Nombre de persona en mayúsculas sostenidas. Se requiere formato Nombre Propio (una mayúscula por palabra).`
+                });
+              }
+            }
+
+            // 3. Presencia de tildes o acentos (Regla institucional: 0 tildes para evitar errores en SIG y código en inglés)
+            const matchTildes = val.match(/[áéíóúÁÉÍÓÚüÜ]/g);
+            if (matchTildes && matchTildes.length > 0) {
+              const unicas = [...new Set(matchTildes)];
+              hallazgosFila.push({
+                tipo: 'Presencia de Tildes (Regla: 0 Tildes)',
+                col, val,
+                detalle: `Contiene tildes (${unicas.map(t => `'${t}'`).join(', ')}). Incompatible con software SIG / scripts en inglés. Sugerencia sin tildes: "${quitarTildes(val)}"`
+              });
+            }
+
+            // Detección opcional de letra Ñ/ñ (carácter especial en bases de datos inglesas)
+            const matchEne = val.match(/[ñÑ]/g);
+            if (matchEne && matchEne.length > 0) {
+              hallazgosFila.push({
+                tipo: 'Carácter Especial (Ñ/ñ)',
+                col, val,
+                detalle: `Contiene letra 'ñ' / 'Ñ', susceptible a corrupción de codificación en tablas .DBF de Shapefiles.`
+              });
+            }
+
+            // 4. Dobles espacios
+            if (/\s{2,}/.test(row[col])) {
+              hallazgosFila.push({
+                tipo: 'Espaciado Doble',
+                col, val,
+                detalle: `Contiene espacios múltiples consecutivos.`
+              });
             }
           });
-          if (nulos.length > 0) {
+
+          if (hallazgosFila.length > 0) {
+            hallazgosFila.forEach(h => {
+              const resObj = {
+                'Fila': idx + 2,
+                'Columna Afectada': h.col,
+                'Valor Actual': h.val,
+                'Tipo de Inconsistencia': h.tipo,
+                'Detalle Técnico': h.detalle,
+                '_estado': h.tipo.includes('Corrupto') ? 'ERROR' : 'WARN'
+              };
+              // Adjuntar campos clave para identificar el registro
+              ['PoligonoId', 'Resolucion', 'Licencia'].forEach(idCol => {
+                const match = globalHeaders.find(gh => gh.toLowerCase() === idCol.toLowerCase());
+                if (match && row[match]) resObj[match] = row[match];
+              });
+              globalAuditResults.push(resObj);
+            });
+          }
+        });
+        renderizarResultadosKpis('auditoria_tipologica');
+
+      } else if (currentMode === 'completitud_datos') {
+        chartBox.style.display = 'none';
+        const threshold = parseFloat(document.getElementById('selectThreshold').value);
+        let criticosSinInfo = 0, parciales = 0, completos = 0;
+
+        globalSheetData.forEach((row, idx) => {
+          const colsEvaluadas = selectedColsArr.length > 0 ? selectedColsArr : globalHeaders;
+          const vacias = [];
+
+          colsEvaluadas.forEach(c => {
+            const v = String(row[c] || '').trim();
+            if (v === '' || v.toUpperCase() === 'NULL' || v.toUpperCase() === 'SIN INFORMACION' || v.toUpperCase() === 'SIN DATO') {
+              vacias.push(c);
+            }
+          });
+
+          const pctVacio = vacias.length / colsEvaluadas.length;
+          let estado = 'OK', categoria = 'Completo (100%)';
+
+          if (pctVacio >= threshold) {
+            estado = 'ERROR';
+            categoria = 'Sin Información (Crítico)';
+            criticosSinInfo++;
+          } else if (vacias.length > 0) {
+            estado = 'WARN';
+            categoria = 'Información Parcial';
+            parciales++;
+          } else {
+            completos++;
+          }
+
+          if (estado !== 'OK') {
             const resObj = {
               'Fila': idx + 2,
-              'Tipo de Inconsistencia': 'Campos Vacíos / Nulos',
-              'Detalle': `Columnas sin dato: ${nulos.join(', ')}`,
-              '_estado': 'WARN'
+              'Estado de Información': categoria,
+              '% Columnas Vacías': `${(pctVacio * 100).toFixed(0)}%`,
+              'Cant. Vacías': `${vacias.length} de ${colsEvaluadas.length}`,
+              'Columnas Faltantes': vacias.join(', '),
+              '_estado': estado
             };
-            selectedColsArr.forEach(c => resObj[c] = row[c]);
+            ['PoligonoId', 'Resolucion', 'Licencia', 'Propietario', 'Municipio'].forEach(idCol => {
+              const match = globalHeaders.find(gh => gh.toLowerCase() === idCol.toLowerCase());
+              if (match && row[match]) resObj[match] = row[match];
+            });
             globalAuditResults.push(resObj);
           }
         });
-      }
 
-      renderizarResultados();
+        renderizarResultadosCompletitud(criticosSinInfo, parciales, completos);
+
+      } else if (currentMode === 'resumen_graficos') {
+        const colResumen = document.getElementById('selectChartCol').value;
+        const conteos = {};
+        let totalValidos = 0;
+
+        globalSheetData.forEach(row => {
+          const val = String(row[colResumen] || '').trim() || '(En Blanco / Sin Dato)';
+          conteos[val] = (conteos[val] || 0) + 1;
+          totalValidos++;
+        });
+
+        // Ordenar categorías por frecuencia descendente
+        const categoriasOrdenadas = Object.keys(conteos).sort((a, b) => conteos[b] - conteos[a]);
+
+        globalAuditResults = categoriasOrdenadas.map((cat, idx) => {
+          const cantidad = conteos[cat];
+          const pct = ((cantidad / totalValidos) * 100).toFixed(2);
+          return {
+            'No.': idx + 1,
+            'Categoría / Valor': cat,
+            'Cantidad de Registros': cantidad,
+            'Porcentaje (%)': `${pct}%`,
+            '_pctRaw': parseFloat(pct),
+            '_estado': 'OK'
+          };
+        });
+
+        renderizarMatrizYGrafico(colResumen, categoriasOrdenadas, conteos, totalValidos);
+      }
     }
 
-    function renderizarResultados() {
+    function renderizarResultadosKpis(modo) {
       const resultsCard = document.getElementById('resultsCard');
       resultsCard.style.display = 'block';
 
       const totalRows = globalSheetData.length;
       const errorCount = globalAuditResults.length;
-      const consistentCount = totalRows - errorCount;
+      const consistentCount = Math.max(0, totalRows - errorCount);
       const errorRate = totalRows > 0 ? ((errorCount / totalRows) * 100).toFixed(1) : 0;
 
-      document.getElementById('kpiTotalRows').textContent = totalRows.toLocaleString();
-      document.getElementById('kpiDiscrepancies').textContent = errorCount.toLocaleString();
-      document.getElementById('kpiConsistent').textContent = Math.max(0, consistentCount).toLocaleString();
-      document.getElementById('kpiErrorRate').textContent = `${errorRate}%`;
-      document.getElementById('resultsBadge').textContent = `${errorCount} Casos Detectados`;
+      document.getElementById('kpiValue1').textContent = totalRows.toLocaleString();
+      document.getElementById('kpiValue2').textContent = errorCount.toLocaleString();
+      document.getElementById('kpiValue3').textContent = consistentCount.toLocaleString();
+      document.getElementById('kpiValue4').textContent = `${errorRate}%`;
+
+      document.getElementById('kpiTitle1').textContent = 'Total Filas';
+      document.getElementById('kpiTitle2').textContent = 'Incidencias';
+      document.getElementById('kpiTitle3').textContent = 'Registros Correctos';
+      document.getElementById('kpiTitle4').textContent = 'Tasa de Error';
+
+      document.getElementById('resultsBadge').textContent = `${errorCount} Incidencias`;
+      poblarTabla(globalAuditResults);
+      resultsCard.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderizarResultadosCompletitud(criticos, parciales, completos) {
+      const resultsCard = document.getElementById('resultsCard');
+      resultsCard.style.display = 'block';
+
+      const total = globalSheetData.length;
+      document.getElementById('kpiTitle1').textContent = 'Total Registros';
+      document.getElementById('kpiValue1').textContent = total.toLocaleString();
+
+      document.getElementById('kpiTitle2').textContent = 'Sin Información (≥80%)';
+      document.getElementById('kpiValue2').textContent = criticos.toLocaleString();
+
+      document.getElementById('kpiTitle3').textContent = 'Información Parcial';
+      document.getElementById('kpiValue3').textContent = parciales.toLocaleString();
+
+      document.getElementById('kpiTitle4').textContent = '100% Completas';
+      document.getElementById('kpiValue4').textContent = completos.toLocaleString();
+
+      document.getElementById('resultsBadge').textContent = `${(criticos + parciales).toLocaleString()} Incompletas`;
+      poblarTabla(globalAuditResults);
+      resultsCard.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderizarMatrizYGrafico(colNombre, categorias, conteos, total) {
+      const resultsCard = document.getElementById('resultsCard');
+      resultsCard.style.display = 'block';
+      const chartBox = document.getElementById('chartBox');
+      chartBox.style.display = 'block';
+
+      document.getElementById('kpiTitle1').textContent = 'Total Evaluados';
+      document.getElementById('kpiValue1').textContent = total.toLocaleString();
+
+      document.getElementById('kpiTitle2').textContent = 'Categorías Únicas';
+      document.getElementById('kpiValue2').textContent = categorias.length.toLocaleString();
+
+      document.getElementById('kpiTitle3').textContent = 'Categoría Mayoritaria';
+      document.getElementById('kpiValue3').textContent = conteos[categorias[0]].toLocaleString();
+      document.getElementById('kpiDesc3').textContent = `${categorias[0]} (${((conteos[categorias[0]]/total)*100).toFixed(1)}%)`;
+
+      document.getElementById('kpiTitle4').textContent = 'Columna Analizada';
+      document.getElementById('kpiValue4').textContent = colNombre;
+
+      document.getElementById('resultsBadge').textContent = `${categorias.length} Categorías`;
+      document.getElementById('chartTitle').textContent = `Distribución de Registros por: ${colNombre}`;
+
+      // Renderizar Gráfico con Chart.js
+      const topCategorias = categorias.slice(0, 15);
+      const topValores = topCategorias.map(c => conteos[c]);
+
+      const ctx = document.getElementById('auditBarChart').getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: topCategorias,
+          datasets: [{
+            label: 'Cantidad de Registros',
+            data: topValores,
+            backgroundColor: 'rgba(13, 118, 80, 0.78)',
+            borderColor: 'rgb(13, 118, 80)',
+            borderWidth: 1.5,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                afterLabel: function(context) {
+                  const val = context.parsed.y;
+                  return `Proporción: ${((val / total) * 100).toFixed(2)}% del total`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { precision: 0 }
+            },
+            x: {
+              ticks: {
+                maxRotation: 45,
+                minRotation: 20
+              }
+            }
+          }
+        }
+      });
 
       poblarTabla(globalAuditResults);
       resultsCard.scrollIntoView({ behavior: 'smooth' });
@@ -1111,29 +1375,34 @@
       tbody.innerHTML = '';
 
       if (datos.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-state-icon">🎉</div><h4>¡No se encontraron discrepancias!</h4><p>Todos los registros evaluados cumplen con las reglas seleccionadas.</p></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-state-icon">🎉</div><h4>¡No se encontraron incidencias!</h4><p>Todos los registros evaluados cumplen con las reglas seleccionadas.</p></td></tr>`;
         return;
       }
 
-      // Cabeceras
-      const columnas = Object.keys(datos[0]).filter(k => k !== '_estado');
+      const columnas = Object.keys(datos[0]).filter(k => !k.startsWith('_'));
       const trHead = document.createElement('tr');
       columnas.forEach(col => {
         const th = document.createElement('th');
         th.textContent = col;
         trHead.appendChild(th);
       });
+      if (currentMode === 'resumen_graficos') {
+        const thBar = document.createElement('th');
+        thBar.textContent = 'Proporción Visual';
+        trHead.appendChild(thBar);
+      }
       thead.appendChild(trHead);
 
-      // Primeros 300 registros para fluidez
       const limite = Math.min(datos.length, 300);
       for (let i = 0; i < limite; i++) {
         const row = datos[i];
         const tr = document.createElement('tr');
+
         columnas.forEach(col => {
           const td = document.createElement('td');
           const val = row[col];
-          if (col === 'Tipo de Inconsistencia') {
+
+          if (col === 'Tipo de Inconsistencia' || col === 'Estado de Información') {
             const badgeClass = row._estado === 'ERROR' ? 'badge-error' : (row._estado === 'WARN' ? 'badge-warn' : 'badge-ok');
             td.innerHTML = `<span class="badge ${badgeClass}">${val}</span>`;
           } else {
@@ -1141,12 +1410,28 @@
           }
           tr.appendChild(td);
         });
+
+        // Barra visual en modo resumen
+        if (currentMode === 'resumen_graficos') {
+          const tdBar = document.createElement('td');
+          tdBar.style.width = '180px';
+          tdBar.innerHTML = `
+            <div class="bar-cell-container">
+              <div class="bar-bg">
+                <div class="bar-fill" style="width: ${row._pctRaw}%"></div>
+              </div>
+              <span style="font-size:0.75rem; font-weight:700; color:var(--forest-green); min-width:35px;">${row._pctRaw}%</span>
+            </div>
+          `;
+          tr.appendChild(tdBar);
+        }
+
         tbody.appendChild(tr);
       }
 
       if (datos.length > 300) {
         const trAviso = document.createElement('tr');
-        trAviso.innerHTML = `<td colspan="${columnas.length}" style="text-align:center; padding:12px; font-weight:700; background:#f0fdf4; color:#065f46;">Mostrando los primeros 300 casos en pantalla. Descarga el reporte en Excel para ver los ${datos.length.toLocaleString()} registros completos.</td>`;
+        trAviso.innerHTML = `<td colspan="${columnas.length + 1}" style="text-align:center; padding:12px; font-weight:700; background:#f0fdf4; color:#065f46;">Mostrando los primeros 300 casos en pantalla para garantizar fluidez. Descarga el archivo Excel para ver los ${datos.length.toLocaleString()} registros completos.</td>`;
         tbody.appendChild(trAviso);
       }
     }
@@ -1158,47 +1443,61 @@
         return;
       }
       const filtrados = globalAuditResults.filter(r => {
-        return Object.values(r).some(val => String(val).toLowerCase().includes(query));
+        return Object.entries(r)
+          .filter(([k]) => !k.startsWith('_'))
+          .some(([, val]) => String(val).toLowerCase().includes(query));
       });
       poblarTabla(filtrados);
     }
 
+    function descargarGraficoPNG() {
+      if (!chartInstance) return;
+      const link = document.createElement('a');
+      link.download = `Grafico_Resumen_${new Date().toISOString().slice(0,10)}.png`;
+      link.href = chartInstance.toBase64Image('image/png', 1);
+      link.click();
+    }
+
     function exportarResultadosExcel() {
       if (globalAuditResults.length === 0) {
-        alert("No hay discrepancias para exportar.");
+        alert("No hay registros para exportar.");
         return;
       }
-      const copia = globalAuditResults.map(r => {
-        const item = { ...r };
-        delete item._estado;
+      const limpia = globalAuditResults.map(r => {
+        const item = {};
+        Object.keys(r).forEach(k => {
+          if (!k.startsWith('_')) item[k] = r[k];
+        });
         return item;
       });
-      const ws = XLSX.utils.json_to_sheet(copia);
+      const ws = XLSX.utils.json_to_sheet(limpia);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Auditoría");
-      XLSX.writeFile(wb, `Reporte_Auditoria_Discrepancias_${new Date().toISOString().slice(0,10)}.xlsx`);
+      XLSX.writeFile(wb, `Reporte_Calidad_${currentMode}_${new Date().toISOString().slice(0,10)}.xlsx`);
     }
 
     function exportarResultadosCSV() {
       if (globalAuditResults.length === 0) return;
-      const copia = globalAuditResults.map(r => {
-        const item = { ...r };
-        delete item._estado;
+      const limpia = globalAuditResults.map(r => {
+        const item = {};
+        Object.keys(r).forEach(k => {
+          if (!k.startsWith('_')) item[k] = r[k];
+        });
         return item;
       });
-      const ws = XLSX.utils.json_to_sheet(copia);
+      const ws = XLSX.utils.json_to_sheet(limpia);
       const csv = XLSX.utils.sheet_to_csv(ws);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Reporte_Auditoria_${new Date().toISOString().slice(0,10)}.csv`;
+      a.download = `Reporte_${currentMode}_${new Date().toISOString().slice(0,10)}.csv`;
       a.click();
     }
 
     function copiarTabla() {
       if (globalAuditResults.length === 0) return;
-      const cols = Object.keys(globalAuditResults[0]).filter(k => k !== '_estado');
+      const cols = Object.keys(globalAuditResults[0]).filter(k => !k.startsWith('_'));
       let tsv = cols.join('\t') + '\n';
       globalAuditResults.forEach(r => {
         tsv += cols.map(c => r[c] || '').join('\t') + '\n';
@@ -1207,13 +1506,13 @@
     }
 
     function cargarEjemploDemo() {
-      // Datos demo para probar inmediatamente
       const dummyData = [
-        {"PoligonoId": 101, "Licencia": "10-112-063-1.1-2016", "Resolucion": "10-112-063-1.1-2016-1", "Correlativo": 1, "Propietario": "RODRIGO COJON", "Municipio": "SAN RAYMUNDO"},
-        {"PoligonoId": 102, "Licencia": "10-124-253-1.1-2014", "Resolucion": "10-124-235-1.1-2014-1", "Correlativo": 1, "Propietario": "JUAN PEREZ", "Municipio": "SAN JOSE PINULA"},
-        {"PoligonoId": 103, "Licencia": "10-132-073-1.1-2008-01", "Resolucion": "10-132-073-1.1-2008-5", "Correlativo": 1, "Propietario": "LEONEL GARCIA", "Municipio": "CHINAUTLA"},
-        {"PoligonoId": 104, "Licencia": "10-132-073-1.1-2008-01", "Resolucion": "10-132-073-1.1-2008-5", "Correlativo": 1, "Propietario": "LEONEL GARCIA", "Municipio": "CHINAUTLA"},
-        {"PoligonoId": 105, "Licencia": "", "Resolucion": "ORDEN JUDICIAL 15002", "Correlativo": 1, "Propietario": "MINEDUC", "Municipio": "GUATEMALA"}
+        {"PoligonoId": 101, "Licencia": "10-112-063-1.1-2016", "Resolucion": "10-112-063-1.1-2016-1", "Correlativo": 1, "Propietario": "JUAN CARLOS PEREZ LOPEZ", "Municipio": "San Raymundo", "Tipo_Licencia": "Aprovechamiento", "Fase_Actual": "LIBERADO"},
+        {"PoligonoId": 102, "Licencia": "10-124-253-1.1-2014", "Resolucion": "10-124-235-1.1-2014-1", "Correlativo": 1, "Propietario": "AGROPECUARIA EL PINAL, S.A.", "Municipio": "San José Pinula", "Tipo_Licencia": "Aprovechamiento", "Fase_Actual": "LIBERADO"},
+        {"PoligonoId": 103, "Licencia": "10-132-073-1.1-2008-01", "Resolucion": "10-132-073-1.1-2008-5", "Correlativo": 1, "Propietario": "Leonel Fernando Garcia Morales", "Municipio": "Chinautla", "Tipo_Licencia": "Sin Informacim", "Fase_Actual": "LIBERADO"},
+        {"PoligonoId": 104, "Licencia": "10-132-073-1.1-2008-01", "Resolucion": "10-132-073-1.1-2008-5", "Correlativo": 1, "Propietario": "Leonel Fernando Garcia Morales", "Municipio": "Chinautla", "Tipo_Licencia": "Saneamiento", "Fase_Actual": "PENDIENTE"},
+        {"PoligonoId": 105, "Licencia": "", "Resolucion": "ORDEN JUDICIAL 15002", "Correlativo": 1, "Propietario": "ROBERTO  MENDEZ", "Municipio": "Guatemala", "Tipo_Licencia": "Salvamento", "Fase_Actual": "LIBERADO"},
+        {"PoligonoId": 106, "Licencia": "", "Resolucion": "", "Correlativo": "", "Propietario": "", "Municipio": "", "Tipo_Licencia": "", "Fase_Actual": ""}
       ];
 
       const ws = XLSX.utils.json_to_sheet(dummyData);
